@@ -53,12 +53,14 @@ We create pairs of two images per person (source and target) based on their IDs.
 This project implements a pose-guided person image generation model using a Generative Adversarial Network (GAN) framework.
 
 It includes two main components:
+
 Generator (Pose-Guided Deformable Generator): Generates realistic images of a person in the desired target pose.
 
 Discriminator: Evaluates the generated images to ensure they look realistic and preserve the person’s identity.
 
 Together, these components enable the model to synthesize high-quality person images conditioned on a given pose.
 
-<center><img src="./thumbnails/.png"></center>
+MODEL ARCHITECTURE
+<center><img src="./thumbnails/model architecture.jpg"></center>
 
 
