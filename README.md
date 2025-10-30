@@ -7,21 +7,15 @@ Specifically, given an image of a person and a target pose, the goal is to synth
 ## Approach
 1) We started by learning the basic concepts of Neural Networks and Machine Learning.
 
-
 2) Using this knowledge, we implemented a handwritten digit recognition model (MNIST dataset) using simple 1- and 2-layer Artificial Neural Networks (ANN) with NumPy from scratch.
-
 
 3) We learned the basic concepts of optimizers, hyperparameter tuning, and Convolutional Neural Networks (CNNs), and studied various architectures.
 
-
 4) Then, we implemented the MNIST model using the PyTorch framework — first with a 2-layer ANN and then with a deep CNN architecture.
-
 
 5) We further implemented an object detection model using the CIFAR-10 dataset with a deep CNN architecture, including batch normalization and dropout regularization.
 
-
 6) Next, we implemented Generative Adversarial Networks (GANs) to generate digits on the MNIST dataset, and later extended it to Conditional GANs (cGANs) on the same dataset.
-
 
 7) Finally, we implemented the Pose-based Human Image Generation architecture in PyTorch for the Market-1501 dataset, taking reference from a research paper-https://openaccess.thecvf.com/content_cvpr_2018/papers/Siarohin_Deformable_GANs_for_CVPR_2018_paper.pdf
 
@@ -32,13 +26,13 @@ The dataset follows a structure where each pair consists of images of the same p
 
 Each dataset item returns a dictionary containing:
 
-Source image
+1)Source image
 
-Target image
+2)Target image
 
-Source pose map
+3)Source pose map
 
-Target pose map
+4)Target pose map
 
 
 Pose Heatmaps
@@ -71,11 +65,14 @@ MODEL ARCHITECTURE
 The DeformableGenerator is designed for pose-guided person image synthesis.
 It takes a source image and its pose map, along with a target pose map, and generates a new image of the person in the target pose.
 
-**Architecture**
+
+### **Architecture**
 
 The generator follows an encoder–decoder structure with deformable skip connections that help align features between different poses.
 
-**Inputs**
+
+
+### **Inputs**
 
 The encoder takes two inputs at a time:
 
@@ -83,43 +80,51 @@ Source image (Xa) and its pose heatmap (Ha)
 
 Target pose heatmap (Hb)
 
-**Problem**
+
+### **Problem**
 
 Low-level convolutional layers cannot effectively process both texture-level information (from Xa) and pose-level information (from Hb) simultaneously.
 
-**Solution**
+
+### **Solution**
 
 We use two separate encoders:
 The source encoder extracts appearance features from (Xa, Ha)
 
 The target encoder extracts pose features from Hb
 
-**Source Encoder**
+
+### **Source Encoder**
 
 The source encoder takes the source image Xa and its pose heatmap Ha to extract appearance features.
 
 It learns a detailed visual representation of the person, including texture, color, and clothing.
 
-**Target Encoder**
+
+### **Target Encoder**
 
 The target encoder takes only the target pose heatmap Hb to extract pose features.
 It learns a structural blueprint — where each body part should be — and guides the generator to reposition features accordingly.
 
-**Deformable Warping**
+
+### **Deformable Warping**
 
 After encoding, the source features are warped based on the difference between the source and target poses (Ha and Hb).
 This step aligns the appearance features to match the target pose.
 
-**Warped Feature Fusion**
+
+### **Warped Feature Fusion**
 
 The warped features are aligned with the target pose and sent through deformable skip connections to the decoder.
 
-**Decoder**
+
+### **Decoder**
 
 The decoder gradually upsamples and reconstructs the final image from the aligned features.
 It combines appearance and pose information to generate the output image.
 
-**Output**
+
+### **Output**
 
 The final output is a generated image (x̂b) that resembles the real target image xb and matches the target pose Hb.
 
