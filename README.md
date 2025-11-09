@@ -43,9 +43,12 @@ We use the Market-1501 dataset from Kaggle.
 It contains multiple images of the same person.
 We create pairs of two images per person (source and target) based on their IDs.
 
-<center><img src="./thumbnails/body_heatmap.png"></center>
-<center><img src="./thumbnails/source image.jpg"></center>
-<center><img src="./thumbnails/source img.jpg"></center>
+<div style="display: flex; justify-content: center; align-items: center; gap: 24px;">
+  <img src="./thumbnails/body_heatmap.png">
+  <img src="./thumbnails/source image.jpg">
+  <img src="./thumbnails/source img.jpg">
+</div>
+
 
 ## Model Architecture Overview
 This project implements a pose-guided person image generation model using a Generative Adversarial Network (GAN) framework.
