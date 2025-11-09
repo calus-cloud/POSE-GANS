@@ -43,11 +43,21 @@ We use the Market-1501 dataset from Kaggle.
 It contains multiple images of the same person.
 We create pairs of two images per person (source and target) based on their IDs.
 
-<div style="display: flex; justify-content: center; align-items: center; gap: 24px;">
-  <img src="./thumbnails/body_heatmap.png">
-  <img src="./thumbnails/source image.jpg">
-  <img src="./thumbnails/source img.jpg">
-</div>
+<table>
+  <tr>
+    <th>Body Heatmap</th>
+    <th>Source Image</th>
+    <th>Source Img</th>
+  </tr>
+  <tr>
+    <td style="padding-right:50px;"><img src="./thumbnails/body_heatmap.png" style="width:200px;"></td>
+    <td style="padding-right:50px;"><img src="./thumbnails/source image.jpg" style="width:200px;"></td>
+    <td><img src="./thumbnails/source img.jpg" style="width:200px;"></td>
+  </tr>
+</table>
+
+
+
 
 
 ## Model Architecture Overview
