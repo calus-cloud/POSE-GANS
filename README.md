@@ -210,6 +210,9 @@ target pose.
 It keeps the warping smooth and continuous, prevents unnatural stretching or tearing of body
 regions, and helps maintain spatial coherence between adjacent pixels.
 
+## results
+
+<img width="835" height="381" alt="image" src="https://github.com/user-attachments/assets/9c65a350-ff1e-4edd-9b87-50b23a964d59" />
 
 ## Summary
 
