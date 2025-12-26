@@ -114,6 +114,7 @@ To address this, the generator uses a **dual-encoder design**:
 Appearance features are then **deformably warped** based on the pose difference between *(Hₐ)* and *(Hᵦ)*.  
 These aligned features are passed to the decoder through **deformable skip connections**, enabling accurate reconstruction of the final image.
 
+<center><img src="./thumbnails/model.jpg"></center>
 ---
 
 ---
@@ -166,3 +167,24 @@ Encourages accurate classification of real and generated images.
 - Deformable warping enables accurate pose alignment
 - Skip connections preserve fine-grained details
 - Adversarial training enforces realism and identity consistency
+
+- ---
+
+## References
+
+This project is an implementation attempt inspired by the architecture proposed in the following work:
+
+Siarohin, A., Sangineto, E., Lathuilière, S., & Sebe, N. (2019).  
+**Appearance and Pose-Conditioned Human Image Generation using Deformable GANs**.  
+arXiv preprint arXiv:1905.00007  
+https://arxiv.org/abs/1905.00007
+
+An earlier version of this work appeared at CVPR 2018 under the title:  
+**Deformable GANs for Pose-based Human Image Generation**.
+
+### Acknowledged Code Repositories
+- Original TensorFlow implementation:  
+  https://github.com/AliaksandrSiarohin/pose-gan
+- PyTorch reference implementation:  
+  https://github.com/saurabhsharma1993/pose-transfer
+
