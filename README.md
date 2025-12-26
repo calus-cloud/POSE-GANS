@@ -1,47 +1,45 @@
 # PoseGAN – Pose-Based Human Image Generation
 
-## Objective
-The objective of this project is to implement Deformable GANs for generating person images conditioned on a given pose.
-Specifically, given an image of a person and a target pose, the goal is to synthesize a new image of that same person in the specified pose.
+## Overview
+This project implements **Deformable Generative Adversarial Networks (Deformable GANs)** for **pose-guided human image generation**.
 
-## Approach
-1) We started by learning the basic concepts of Neural Networks and Machine Learning.
+Given a **source image of a person** and a **target pose**, the model synthesizes a new image of the *same person* accurately reposed according to the target pose while preserving identity and appearance.
 
-2) Using this knowledge, we implemented a handwritten digit recognition model (MNIST dataset) using simple 1- and 2-layer Artificial Neural Networks (ANN) with NumPy from scratch.
-
-3) We learned the basic concepts of optimizers, hyperparameter tuning, and Convolutional Neural Networks (CNNs), and studied various architectures.
-
-4) Then, we implemented the MNIST model using the PyTorch framework — first with a 2-layer ANN and then with a deep CNN architecture.
-
-5) We further implemented an object detection model using the CIFAR-10 dataset with a deep CNN architecture, including batch normalization and dropout regularization.
-
-6) Next, we implemented Generative Adversarial Networks (GANs) to generate digits on the MNIST dataset, and later extended it to Conditional GANs (cGANs) on the same dataset.
-
-7) Finally, we implemented the Pose-based Human Image Generation architecture in PyTorch for the Market-1501 dataset, taking reference from a research paper-https://openaccess.thecvf.com/content_cvpr_2018/papers/Siarohin_Deformable_GANs_for_CVPR_2018_paper.pdf
-
-## Custom Dataset – MarketPoseDataset
-This project includes a custom PyTorch dataset class called MarketPoseDataset, designed for pose-guided image generation.
-The dataset follows a structure where each pair consists of images of the same person in different poses, along with their corresponding pose maps.
+---
 
 
-Each dataset item returns a dictionary containing:
+## Learning Path & Implementation Strategy
 
-1)Source image
+The project was built progressively to ensure strong conceptual and practical understanding:
 
-2)Target image
+1. Studied the fundamentals of **Neural Networks and Machine Learning**.
+2. Implemented **MNIST digit classification** using:
+   - 1-layer and 2-layer Artificial Neural Networks  
+   - NumPy (from scratch).
+3. Learned **optimizers, hyperparameter tuning**, and **CNN fundamentals**, along with common architectures.
+4. Reimplemented MNIST using **PyTorch**:
+   - 2-layer ANN
+   - Deep CNN architecture.
+5. Built a **deep CNN-based object recognition model** on the **CIFAR-10 dataset**, incorporating:
+   - Batch normalization  
+   - Dropout regularization.
+6. Implemented **Generative Adversarial Networks (GANs)** for digit generation and extended them to **Conditional GANs (cGANs)**.
+7. Finally, implemented **pose-based human image generation** in PyTorch using the **Market-1501 dataset**, inspired by the following research work:  
+   https://openaccess.thecvf.com/content_cvpr_2018/papers/Siarohin_Deformable_GANs_for_CVPR_2018_paper.pdf
 
-3)Source pose map
+---
 
-4)Target pose map
+## Custom Dataset – `MarketPoseDataset`
 
+A custom PyTorch dataset class, `MarketPoseDataset`, was created to support pose-guided image generation.
 
-Pose Heatmaps
-We extract 18 human joint keypoints from each image and use YOLO-based pose estimation to generate corresponding heatmaps.
- These heatmaps are then converted into tensors for training.
-Pairing
-We use the Market-1501 dataset from Kaggle.
-It contains multiple images of the same person.
-We create pairs of two images per person (source and target) based on their IDs.
+Each dataset sample contains **paired images of the same person in different poses**, along with their corresponding pose representations.
+
+### Each sample returns:
+- Source image
+- Target image
+- Source pose heatmap
+- Target pose heatmap
 
 <table>
   <tr>
@@ -58,170 +56,113 @@ We create pairs of two images per person (source and target) based on their IDs.
 
 
 
+### Pose Heatmap Generation
 
+- **18 human body keypoints** are extracted from each image using a YOLO-based pose estimation model.
+- These keypoints are converted into **pose heatmaps**.
+- Heatmaps are transformed into tensors and used as conditioning inputs during training.
+
+
+
+### Pairing Strategy
+
+- The **Market-1501 dataset** contains multiple images per person ID.
+- Image pairs are created using the same person ID to ensure **identity consistency** while allowing **pose variation**.
+
+---
 
 ## Model Architecture Overview
-This project implements a pose-guided person image generation model using a Generative Adversarial Network (GAN) framework.
 
-It includes two main components:
-
-Generator (Pose-Guided Deformable Generator): Generates realistic images of a person in the desired target pose.
-
-Discriminator: Evaluates the generated images to ensure they look realistic and preserve the person’s identity.
-
-Together, these components enable the model to synthesize high-quality person images conditioned on a given pose.
-
+The system follows a **GAN-based pose-guided image synthesis framework** consisting of two main components:
 MODEL ARCHITECTURE
 <center><img src="./thumbnails/model architecture.jpg"></center>
 
-## Generator
-The DeformableGenerator is designed for pose-guided person image synthesis.
-It takes a source image and its pose map, along with a target pose map, and generates a new image of the person in the target pose.
+- **Generator (Pose-Guided Deformable Generator)**  
+- **Discriminator**
 
+The generator produces pose-aligned images, while the discriminator enforces realism, pose correctness, and identity preservation.
 
-### **Architecture**
+---
 
-The generator follows an encoder–decoder structure with deformable skip connections that help align features between different poses.
+## Generator & Discriminator Overview
 
+### Generator – Pose-Guided Deformable Generator
 
+The generator follows an **encoder–decoder architecture** with **deformable skip connections**, enabling it to handle large pose variations while preserving the person’s identity and appearance.
 
-### **Inputs**
+#### Inputs
+- **Xₐ**: Source image  
+- **Hₐ**: Source pose heatmap  
+- **Hᵦ**: Target pose heatmap  
 
-The encoder takes two inputs at a time:
+---
 
-Source image (Xa) and its pose heatmap (Ha)
+### Generator Output
+The generator produces a synthesized image *(x̂ᵦ)* that:
+- Matches the target pose *(Hᵦ)*
+- Preserves the identity and appearance of the source person
 
-Target pose heatmap (Hb)
 
+### Pose–Appearance Modeling Strategy
 
-### **Problem**
+Standard convolutional layers struggle to jointly represent **appearance** (texture, clothing, color) and **pose** (body layout).
 
-Low-level convolutional layers cannot effectively process both texture-level information (from Xa) and pose-level information (from Hb) simultaneously.
+To address this, the generator uses a **dual-encoder design**:
+- A **source encoder** processes *(Xₐ, Hₐ)* to capture appearance and identity.
+- A **target encoder** processes *(Hᵦ)* to learn the target pose structure.
 
+Appearance features are then **deformably warped** based on the pose difference between *(Hₐ)* and *(Hᵦ)*.  
+These aligned features are passed to the decoder through **deformable skip connections**, enabling accurate reconstruction of the final image.
 
-### **Solution**
+---
 
-We use two separate encoders:
-The source encoder extracts appearance features from (Xa, Ha)
+---
 
-The target encoder extracts pose features from Hb
+### Discriminator
 
+The discriminator evaluates the realism and consistency of generated images.  
+It receives the following inputs:
+- A **real pair** *(xᵦ, Hᵦ)*
+- A **generated pair** *(x̂ᵦ, Hᵦ)*
+- A **source reference** *(xₐ, Hₐ)* for identity comparison
 
-### **Source Encoder**
+Its objectives are to:
+- Distinguish real images from generated ones
+- Enforce identity consistency with the source image
+- Verify correct alignment with the target pose
 
-The source encoder takes the source image Xa and its pose heatmap Ha to extract appearance features.
 
-It learns a detailed visual representation of the person, including texture, color, and clothing.
 
 
-### **Target Encoder**
 
-The target encoder takes only the target pose heatmap Hb to extract pose features.
-It learns a structural blueprint — where each body part should be — and guides the generator to reposition features accordingly.
+---
 
+## Loss Functions
 
-### **Deformable Warping**
+### Discriminator Loss (L_D)
+Encourages accurate classification of real and generated images.
 
-After encoding, the source features are warped based on the difference between the source and target poses (Ha and Hb).
-This step aligns the appearance features to match the target pose.
 
 
-### **Warped Feature Fusion**
+### Generator Loss (L_G)
 
-The warped features are aligned with the target pose and sent through deformable skip connections to the decoder.
+| Loss Type | Purpose | Effect |
+|---------|---------|--------|
+| **Perceptual Loss** | Measures high-level feature similarity | Preserves visual realism, fine details, and reduces blurriness |
+| **Nearest Neighbour Loss** | Preserves local texture and structure | Handles minor spatial misalignments better than pixel-wise losses |
+| **Offset Smoothness Loss** | Regularizes deformable offsets | Ensures smooth spatial transformations and prevents distortions |
 
+---
 
-### **Decoder**
+## Results
 
-The decoder gradually upsamples and reconstructs the final image from the aligned features.
-It combines appearance and pose information to generate the output image.
+![Results](https://github.com/user-attachments/assets/9c65a350-ff1e-4edd-9b87-50b23a964d59)
 
+---
 
-### **Output**
+## Key Takeaways
 
-The final output is a generated image (x̂b) that resembles the real target image xb and matches the target pose Hb.
-
-
-## Discriminator
-
-The discriminator (D) evaluates the realism of generated images.
- It receives two sets of inputs:
-Real pair: (xb, Hb)
-
-Fake pair: (x̂b, Hb)
-
-Source reference pair: (xa, Ha)
-
-**Purpose**
-
-The discriminator ensures:
-The generated image x̂b looks realistic.
-
-It correctly represents the same person as the source image xa.
-
-It matches the target pose Hb accurately.
-
-## losses
-
-
-This part of the architecture shows the loss functions used for training the PoseGAN model.  
-There are two main types of losses: Generator Loss (L_G) and Discriminator Loss (L_D).
-
-**Discriminator Loss (L_D)**:  
-
-Measures how well the discriminator can distinguish between real and fake images. 
-
-Its goal is to correctly identify real images as real and generated ones as fake.
-
-**Generator Loss (L_G)**: 
-
-Encourages the generator to produce realistic and well-aligned images that can fool the discriminator.  
-
-It is composed of multiple sub-losses:
-
-
-**Perceptual Loss**: 
-
-
-Perceptual loss measures the difference between the generated image and the real target image,
-not at the pixel level, but in terms of high-level visual features.  
-
-It helps the generated image look visually realistic and consistent with the real one.  
-
-Fine details such as clothing texture, lighting, and shape are preserved, and it prevents
-blurriness that often happens with only pixel-level losses like L1 or L2.
-
-
-**Nearest Neighbour Loss**:
-
-This loss preserves fine texture and structural details between source and generated images.  
-
-It replaces common pixel-to-pixel losses (such as L1 or L2) and helps generate local
-information (like texture) similar to the target image, even when small spatial misalignments
-exist.
-
-
-**Offset Smoothness Loss**:
-
-Offset Smoothness Loss ensures that the deformable skip connections in the generator produce
-smooth and realistic spatial transformations when warping features from the source pose to the
-target pose.
-
-It keeps the warping smooth and continuous, prevents unnatural stretching or tearing of body
-regions, and helps maintain spatial coherence between adjacent pixels.
-
-## results
-
-<img width="835" height="381" alt="image" src="https://github.com/user-attachments/assets/9c65a350-ff1e-4edd-9b87-50b23a964d59" />
-
-## Summary
-
-1. The source encoder captures visual appearance.
-2. The target encoder captures pose structure.
-3. Deformable warping aligns features between poses.
-4. The decoder reconstructs the final target-pose image.
-5. The discriminator ensures realism and identity consistency.
-
-
-
-
+- Dual encoders disentangle appearance and pose information
+- Deformable warping enables accurate pose alignment
+- Skip connections preserve fine-grained details
+- Adversarial training enforces realism and identity consistency
