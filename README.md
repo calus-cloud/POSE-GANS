@@ -179,12 +179,6 @@ Siarohin, A., Sangineto, E., Lathuilière, S., & Sebe, N. (2019).
 arXiv preprint arXiv:1905.00007  
 https://arxiv.org/abs/1905.00007
 
-An earlier version of this work appeared at CVPR 2018 under the title:  
-**Deformable GANs for Pose-based Human Image Generation**.
 
-### Acknowledged Code Repositories
-- Original TensorFlow implementation:  
-  https://github.com/AliaksandrSiarohin/pose-gan
-- PyTorch reference implementation:  
-  https://github.com/saurabhsharma1993/pose-transfer
+
 
