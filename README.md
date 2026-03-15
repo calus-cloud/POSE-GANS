@@ -49,8 +49,8 @@ Each dataset sample contains **paired images of the same person in different pos
   </tr>
   <tr>
     <td style="padding-right:50px;"><img src="./thumbnails/body_heatmap.png" style="width:200px;"></td>
-    <td style="padding-right:50px;"><img src="./thumbnails/source img.jpg" style="width:200px;"></td>
-    <td><img src="./thumbnails/Soruce img.jpg" style="width:200px;"></td>
+    <td style="padding-right:50px;"><img src="./thumbnails/Source image.jpg" style="width:200px;"></td>
+    <td><img src="./thumbnails/tgt img.jpg" style="width:200px;"></td>
   </tr>
 </table>
 
