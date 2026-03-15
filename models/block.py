@@ -1,77 +1,77 @@
-import os
-from PIL import Image
-import numpy as np
 import torch
-from torch.utils.data import Dataset
-import torchvision.transforms as T
+import torch.nn as nn
+import torch.nn.functional as F
 
-class MarketPoseDataset(Dataset):
+class ConvBlock(nn.Module):
     """
-    Dataset for Market-1501 pose transfer. Each example is a pair:
-    (src_image, src_pose_map, tgt_pose_map, tgt_image)
+    Basic convolutional block: Conv2d → (Norm) → Activation
     """
-    def _init_(self,
-                 images_dir: str,
-                 pose_maps_dir: str,
-                 pairs_csv: str,
-                 img_size=(256,256),
-                 transform=None):
-        self.images_dir = images_dir
-        self.pose_maps_dir = pose_maps_dir
-        self.pairs = []
+    def __init__(self, in_ch, out_ch, kernel_size=3, stride=1, padding=1,
+                 norm=nn.InstanceNorm2d, activation=nn.ReLU(inplace=True)):
+        super().__init__()
+        layers = []
+        layers.append(nn.Conv2d(in_ch, out_ch, kernel_size, stride, padding, bias=False))
+        if norm is not None:
+            layers.append(norm(out_ch))
+        if activation is not None:
+            layers.append(activation)
+        self.main = nn.Sequential(*layers)
 
-        # Read CSV and filter pairs with missing files
-        with open(pairs_csv, 'r') as f:
-            for line in f:
-                src_name, tgt_name = line.strip().split(',')
+    def forward(self, x):
+        return self.main(x)
 
-                src_path = os.path.join(self.images_dir, src_name)
-                tgt_path = os.path.join(self.images_dir, tgt_name)
-                src_pose_path = os.path.join(self.pose_maps_dir, os.path.splitext(src_name)[0] + ".npy")
-                tgt_pose_path = os.path.join(self.pose_maps_dir, os.path.splitext(tgt_name)[0] + ".npy")
 
-                if os.path.exists(src_path) and os.path.exists(tgt_path) \
-                   and os.path.exists(src_pose_path) and os.path.exists(tgt_pose_path):
-                    self.pairs.append((src_name, tgt_name))
-                else:
-                    print(f"Skipping missing pair: {src_name}, {tgt_name}")
+class ResidualBlock(nn.Module):
+    """
+    A simple residual block: two conv blocks with skip connection.
+    """
+    def __init__(self, ch, norm=nn.InstanceNorm2d, activation=nn.ReLU(inplace=True)):
+        super().__init__()
+        self.conv1 = ConvBlock(ch, ch, kernel_size=3, stride=1, padding=1, norm=norm, activation=activation)
+        self.conv2 = ConvBlock(ch, ch, kernel_size=3, stride=1, padding=1, norm=norm, activation=None)
+        self.act = activation
 
-        self.img_size = img_size
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.conv2(out)
+        return self.act(out + x)
 
-        # Define default transforms if not provided
-        if transform is None:
-            self.transform = T.Compose([
-                T.Resize(self.img_size),
-                T.ToTensor(),
-                T.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5])
-            ])
+
+class DownsampleBlock(nn.Module):
+    """
+    Downsampling by stride-2 conv (or optional choice).
+    """
+    def __init__(self, in_ch, out_ch, norm=nn.InstanceNorm2d, activation=nn.ReLU(inplace=True)):
+        super().__init__()
+        self.conv = ConvBlock(in_ch, out_ch, kernel_size=4, stride=2, padding=1, norm=norm, activation=activation)
+
+    def forward(self, x):
+        return self.conv(x)
+
+
+class UpsampleBlock(nn.Module):
+    """
+    Upsampling by nearest + conv, or transposed conv.
+    """
+    def __init__(self, in_ch, out_ch, norm=nn.InstanceNorm2d, activation=nn.ReLU(inplace=True), use_transpose=False):
+        super().__init__()
+        if use_transpose:
+            self.up = nn.ConvTranspose2d(in_ch, out_ch, kernel_size=4, stride=2, padding=1, bias=False)
+            self.norm = norm(out_ch) if norm is not None else None
+            self.activation = activation
         else:
-            self.transform = transform
+            # scale up then conv
+            self.up = nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
+                nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=False)
+            )
+            self.norm = norm(out_ch) if norm is not None else None
+            self.activation = activation
 
-    def _len_(self):
-        return len(self.pairs)
-
-    def _getitem_(self, idx):
-        src_name, tgt_name = self.pairs[idx]
-        src_path = os.path.join(self.images_dir, src_name)
-        tgt_path = os.path.join(self.images_dir, tgt_name)
-
-        src_pose_path = os.path.join(self.pose_maps_dir, os.path.splitext(src_name)[0] + ".npy")
-        tgt_pose_path = os.path.join(self.pose_maps_dir, os.path.splitext(tgt_name)[0] + ".npy")
-
-        # Load images
-        src_img = Image.open(src_path).convert("RGB")
-        tgt_img = Image.open(tgt_path).convert("RGB")
-        src_img = self.transform(src_img)
-        tgt_img = self.transform(tgt_img)
-
-        # Load pose maps
-        src_pose = torch.from_numpy(np.load(src_pose_path)).float()
-        tgt_pose = torch.from_numpy(np.load(tgt_pose_path)).float()
-
-        return {
-            "src_img": src_img,
-            "tgt_img": tgt_img,
-            "src_pose": src_pose,
-            "tgt_pose": tgt_pose
-        }
+    def forward(self, x):
+        x = self.up(x)
+        if self.norm is not None:
+            x = self.norm(x)
+        if self.activation is not None:
+            x = self.activation(x)
+        return x
