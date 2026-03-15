@@ -50,7 +50,7 @@ Each dataset sample contains **paired images of the same person in different pos
   <tr>
     <td style="padding-right:50px;"><img src="./thumbnails/body_heatmap.png" style="width:200px;"></td>
     <td style="padding-right:50px;"><img src="./thumbnails/source img.jpg" style="width:200px;"></td>
-    <td><img src="./thumbnails/target img.jpg" style="width:200px;"></td>
+    <td><img src="./thumbnails/soruce img.jpg" style="width:200px;"></td>
   </tr>
 </table>
 
